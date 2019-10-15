@@ -1,9 +1,8 @@
 
-
-import java.util.List;
+import java.util.Set;
 
 interface Ilayout {
-	List<Ilayout> children();
+	Set<Ilayout> children();
 	/**
 	@return true if the receiver equals the argument l; return false otherwise.
 	 */
