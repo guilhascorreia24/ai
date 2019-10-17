@@ -1,9 +1,6 @@
 
 import java.util.HashSet;
 import java.util.Iterator;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Queue;
 import java.util.Set;
 import java.util.Stack;
 
@@ -24,7 +21,7 @@ class BestFirst {
 				f = g + l.getH(goal);
 			} else {
 				g = 0.0;
-				f = 0.0;
+				f = 0;
 			}
 		}
 
@@ -48,13 +45,7 @@ class BestFirst {
 		public double getF() {
 			return f;
 		}
-
 	}
-	private Ilayout goal1;
-	private Stack<State> visited=new Stack<>();
-	private LinkedList<State> path=new LinkedList<>();
-	private State test;
-	private State inicial;
 	
 	final private Set<State> sucessores(final State n) {
 		Set<State> sucs = new HashSet<>();
@@ -67,43 +58,49 @@ class BestFirst {
 		}
 		return sucs;
 	}
-	
+	private Ilayout goal1;
+	private Stack<State> path=new Stack<>();
+	private State inicial,next;
 	final public Iterator<State> solve(Ilayout s, Ilayout goal) {
 		goal1=goal;
 		inicial=new State(s,null,goal);
+		path.push(inicial);
 		while(true){
-			path.clear();
-			visited.clear();
-			State next=search(inicial,inicial.getF(),visited);
+			next=search(path,0,inicial.layout.getH(goal));
 			if(next!=null && next.layout.isGoal(goal)){
 				return path.iterator();
 			}
+			//System.out.println(next.layout);
 			inicial=next;
 		}
 	}
 
-	final private State search(State state, double f, Stack<State> visited) {
-		if(state!=null){
-			visited.push(state);
-			path.add(state);
+	final private State search(Stack<State> path, double g, double bound) {
+		State node=path.lastElement();
+		State n=node;
+		n.f=g+node.layout.getH(goal1);
+		if(n.getF()>bound){return n;}
+		if(node!=null && node.layout.isGoal(goal1)){
+			return node;
 		}
-		if( state.layout.isGoal(goal1)){
-			return state;
-		}
-		if(state.getF()>f){
-			return null;
-		}
-		State test = null;
-		Set<State> sucs=sucessores(state);
+		State finale=null;
+		double min=Double.MAX_VALUE;
+		Set<State> sucs=sucessores(node);
 		for(State s:sucs){
-			if(!visited.contains(s)){
-				test=search(s, f, visited);
-				if(test!=null){
-					return test;
+			if(!path.contains(s)){
+				path.push(s);
+				next=search(path,g+node.layout.getH(s.layout), bound);
+				System.out.println(next.layout);
+				if(next.layout!=null && next.layout.isGoal(goal1)){
+					return next;
 				}
-				path.remove(state);
+				if(next!=null && next.f<min){
+					min=next.f;
+					finale=next;
+				}
+				path.pop();
 			}
 		}
-		return inicial;
+		return finale;
 	}
 }
