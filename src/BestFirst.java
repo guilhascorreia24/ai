@@ -1,12 +1,11 @@
 
-import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.PriorityQueue;
 import java.util.Queue;
 import java.util.Set;
+import java.util.Stack;
 
 import javax.management.RuntimeErrorException;
 
@@ -25,7 +24,7 @@ class BestFirst {
 				f = g + l.getH(goal);
 			} else {
 				g = 0.0;
-				f = 0;
+				f = 0.0;
 			}
 		}
 
@@ -49,10 +48,13 @@ class BestFirst {
 		public double getF() {
 			return f;
 		}
+
 	}
-	private State actual;
-	private Ilayout objective;
 	private Ilayout goal1;
+	private Stack<State> visited=new Stack<>();
+	private LinkedList<State> path=new LinkedList<>();
+	private State test;
+	private State inicial;
 	
 	final private Set<State> sucessores(final State n) {
 		Set<State> sucs = new HashSet<>();
@@ -67,38 +69,41 @@ class BestFirst {
 	}
 	
 	final public Iterator<State> solve(Ilayout s, Ilayout goal) {
-		objective =s;
 		goal1=goal;
-		Queue<State> abertos = new PriorityQueue<>(10,(s1, s2) -> (int) Math.signum(s1.getF()-s2.getF()));
-		List<State> fechados = new ArrayList<>();
-		abertos.add(new State(s, null,goal));
-		Set<State> sucs; 
-		LinkedList<State> f=new LinkedList<>();
-		double min=Double.MAX_VALUE;
-		while(true)  {
-			if(abertos.isEmpty()) {
-				System.exit(0);
+		inicial=new State(s,null,goal);
+		while(true){
+			path.clear();
+			visited.clear();
+			State next=search(inicial,inicial.getF(),visited);
+			if(next!=null && next.layout.isGoal(goal)){
+				return path.iterator();
 			}
-			actual=abertos.poll();
-			System.out.println((int)actual.getG());
-			if(actual.layout.isGoal(goal)) {
-				objective=actual.layout;
-				while(actual!=null) {
-					f.addFirst(actual);
-					actual=actual.father;
-				}
-				return f.iterator();
-			}
-			else {
-				sucs=sucessores(actual);
-				fechados.add(actual);
-				for(State s1:sucs) {
-					if(!abertos.contains(s1) && actual.getF()<min) {
-						abertos.add(s1);
-						min=actual.getF();
-					}
-			}
+			inicial=next;
 		}
 	}
+
+	final private State search(State state, double f, Stack<State> visited) {
+		if(state!=null){
+			visited.push(state);
+			path.add(state);
+		}
+		if( state.layout.isGoal(goal1)){
+			return state;
+		}
+		if(state.getF()>f){
+			return null;
+		}
+		State test = null;
+		Set<State> sucs=sucessores(state);
+		for(State s:sucs){
+			if(!visited.contains(s)){
+				test=search(s, f, visited);
+				if(test!=null){
+					return test;
+				}
+				path.remove(state);
+			}
+		}
+		return inicial;
 	}
 }

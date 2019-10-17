@@ -141,7 +141,7 @@ class Board implements Ilayout, Cloneable {
 		if(!isGoal(l)){
 			for(int i=0;i<dim;i++){
 				for(int j=0;j<dim;j++){
-					h+=impar_par(board[i][j],o.board[i][j]);
+					h+=(double)impar_par(board[i][j],o.board[i][j]);
 				}
 			}
 		}
