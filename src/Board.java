@@ -1,34 +1,70 @@
 
+import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Set;
 
+import javax.management.RuntimeErrorException;
+
 class Board implements Ilayout, Cloneable {
-	private static final int dim=3;
+	private static final int dim = 3;
 	private int board[][];
+	private Set<Ilayout> childrens=new HashSet<>();
 	private double g;
-	public Board(){ board = new int[dim][dim];}
-	
-	public Board(String str) throws IllegalStateException {
-		if (str.length() != dim*dim) throw new IllegalStateException("Invalid arg in Board constructor");
+
+	public Board() {
 		board = new int[dim][dim];
-		int si=0;
-		for(int i=0; i<dim; i++)
-			for(int j=0; j<dim; j++)
+	}
+
+	public Board(String str) throws IllegalStateException {
+		if (str.length() != dim * dim)
+			throw new IllegalStateException("Invalid arg in Board constructor");
+		board = new int[dim][dim];
+		int si = 0;
+		for (int i = 0; i < dim; i++)
+			for (int j = 0; j < dim; j++)
 				board[i][j] = Character.getNumericValue(str.charAt(si++));
 	}
-	
+
 	public String toString() {
-		String res="";
-		for(int i=0;i<dim;i++) {
-			for(int j=0;j<dim;j++) {
-				if(board[i][j]==0) res+=" ";
-				else res+=board[i][j];
+		String result = "";
+		for (int y = 0; y < dim; y++) {
+			for (int x = 0; x < dim; x++) {
+				if (board[y][x] == 0) {
+					result += " ";
+				} else {
+					result += board[y][x];
+				}
 			}
-			res+="\n";
+			result += "\n";
 		}
-		return res;
+		return result;
 	}
-	
+
+	public boolean equals(Object object) {
+		if (object instanceof Board) {
+			Board b = (Board) object;
+			int l_board[][] = b.board;
+
+			for (int x = 0; x < dim; x++) {
+				for (int y = 0; y < dim; y++) {
+					if (l_board[x][y] != board[x][y]) {
+						return false;
+					}
+				}
+			}
+			return true;
+		}
+		throw new RuntimeErrorException(null, "Object not instance of ILayout");
+	}
+
+	public boolean isGoal(Ilayout l) {
+		return equals(l);
+	}
+
+	public double getG() {
+		return g;
+	}
+
 	@Override
 	public Board clone() {
 		Board o=new Board();
@@ -39,110 +75,81 @@ class Board implements Ilayout, Cloneable {
 		}
 		return o;
 	}
-	
+
+	public Board exchange(int i,int j,int addline,int addcol){
+		Board buffer_board = clone();
+		int n=buffer_board.board[i][j];
+		buffer_board.board[i][j] = board[((i+addline)%3+3)%3][((j+addcol)%3+3)%3];
+		buffer_board.board[((i+addline)%3+3)%3][((j+addcol)%3+3)%3] = n;
+		buffer_board.g=impar_par(buffer_board.board[((i+addline)%3+3)%3][((j+addcol)%3+3)%3], buffer_board.board[i][j]);
+		return buffer_board;
+	}
 	public double impar_par(int a,int b) {
 		if(a%2==0 && b%2==0) return 20;
 		else if(a%2!=0 && b%2!=0)return 1;
 		else return 5;
 	}
-
 	public Set<Ilayout> children() {
-		Set<Ilayout> t1=new HashSet<>();
 		for(int i=0;i<dim;i++){
-			for(int j=0;j<dim;j++){
-				Board cloned=clone();
-				cloned.board[0][0]=board[i][j];//left
-				cloned.board[i][j]=board[0][0];
-				cloned.g=impar_par(board[i][j],board[0][0]);
-				t1.add(cloned);
-
-		
-				Board cloned1= clone();
-				cloned1.board[0][1]=board[i][j];//right
-				cloned1.board[i][j]=board[0][1];
-				cloned1.g=impar_par(board[i][j],board[0][1]);
-				t1.add(cloned1);
-
-		
-				Board cloned2=clone();
-				cloned2.board[0][2]=board[i][j];//down
-				cloned2.board[i][j]=board[0][2];
-				cloned2.g=impar_par(board[i][j],board[0][2]);
-				t1.add(cloned2);
-
-						
-				Board cloned3= clone();
-				cloned3.board[1][0]=board[i][j];//up
-				cloned3.board[i][j]=board[1][0];
-				cloned3.g=impar_par(board[i][j],board[1][0]);
-				t1.add(cloned3);
-				
-				Board cloned4= clone();
-				cloned4.board[1][1]=board[i][j];
-				cloned4.board[i][j]=board[1][1];
-				cloned4.g=impar_par(board[i][j],board[1][1]);
-				t1.add(cloned4);
-
-				
-				Board cloned5= clone();
-				cloned5.board[1][2]=board[i][j];
-				cloned5.board[i][j]=board[1][2];
-				cloned5.g=impar_par(board[i][j],board[1][2]);
-				t1.add(cloned5);
-
-				Board cloned6= clone();
-				cloned6.board[2][0]=board[i][j];
-				cloned6.board[i][j]=board[2][0];
-				cloned6.g=impar_par(board[i][j],board[2][0]);
-				t1.add(cloned6);
-
-				Board cloned7= clone();
-				cloned7.board[2][1]=board[i][j];
-				cloned7.board[i][j]=board[2][1];
-				cloned7.g=impar_par(board[i][j],board[2][1]);
-				t1.add(cloned7);
-
-				Board cloned8= clone();
-				cloned8.board[2][2]=board[i][j];
-				cloned8.board[i][j]=board[2][2];
-				cloned8.g=impar_par(board[i][j],board[2][2]);
-				t1.add(cloned8);
+			for(int j=i+1;j<dim;j++){
+				childrens.add(exchange(i, j, -1, 0));
+				childrens.add(exchange(i, j,0,-1));
+				childrens.add(exchange(i, j, 1, 0));
+				childrens.add(exchange(i, j, 0, 1));
+				childrens.add(exchange(i, j, -1, -1));
+				childrens.add(exchange(i, j, -1, 1));
+				childrens.add(exchange(i, j, 1, 1));
+				childrens.add(exchange(i, j, 1, -1));			
 			}
 		}
-
-		return t1;
+		
+		// System.out.println("Children Size: " + childrens.size());
+		return childrens;
 	}
+
 	
-	@Override
-	public boolean equals(Object l){
-		Board o=(Board) l;
-		for(int i=0;i<dim;i++) {
-			for(int j=0;j<dim;j++) {
-				if(board[i][j]!=o.board[i][j]) {
-					return false;
-				}
-			}
-		}
-		return true;
-	}
-	public boolean isGoal(Ilayout l) {
-		return equals(l);
-	}
-
-	@Override
-	public double getG() {
-		return g;
-	}
+private double getmin(double[] list){
+    double max = Double.MAX_VALUE;
+    for(int i=0; i<list.length; i++){
+        if(list[i] < max){
+            max = list[i];
+        }
+    }
+    return max;
+}
 
 	@Override
 	public double getH(Ilayout l) {
-		double h=0;
 		Board o=(Board) l;
-		if(!isGoal(l)){
-			for(int i=0;i<dim;i++){
-				for(int j=0;j<dim;j++){
-					h+=(double)impar_par(board[i][j],o.board[i][j]);
+		double h=0;
+		for(int i=0;i<dim;i++){
+			for(int j=0;j<dim;j++){
+				double[] k=new double [8];
+				if(o.board[i][j]==exchange(i, j, -1, 0).board[i][j]){
+					k[0]=this.impar_par(o.board[i][j],board[i][j]);
 				}
+				if(o.board[i][j]==exchange(i, j, 0, -1).board[i][j]){
+					k[1]=this.impar_par(o.board[i][j],board[i][j]);
+				}
+				if(o.board[i][j]==exchange(i, j, 1, 0).board[i][j]){
+					k[2]=this.impar_par(o.board[i][j], board[i][j]);
+				}
+				if(o.board[i][j]==exchange(i, j, 0, 1).board[i][j]){
+					k[3]=this.impar_par(o.board[i][j], board[i][j]);
+				}
+				if(o.board[i][j]==exchange(i, j, -1, -1).board[i][j]){
+					k[4]=this.impar_par(o.board[i][j], board[i][j]);
+				}
+				if(o.board[i][j]==exchange(i, j, -1, 1).board[i][j]){
+					k[5]=this.impar_par(o.board[i][j], board[i][j]);
+				}
+				if(o.board[i][j]==exchange(i, j, 1, 1).board[i][j]){
+					k[6]=this.impar_par(o.board[i][j], board[i][j]);
+				}
+				if(o.board[i][j]==exchange(i, j, 1, -1).board[i][j]){
+					k[7]=this.impar_par(o.board[i][j], board[i][j]);
+				}
+				h=getmin(k);
 			}
 		}
 		return h;
