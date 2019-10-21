@@ -1,14 +1,11 @@
 
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.Set;
+import java.util.*;
 
 import javax.management.RuntimeErrorException;
 
 class Board implements Ilayout, Cloneable {
 	private static final int dim = 3;
 	private int board[][];
-	private Set<Ilayout> childrens=new HashSet<>();
 	private double g;
 
 	public Board() {
@@ -89,7 +86,8 @@ class Board implements Ilayout, Cloneable {
 		else if(a%2!=0 && b%2!=0)return 1;
 		else return 5;
 	}
-	public Set<Ilayout> children() {
+	public List<Ilayout> children() {
+	List<Ilayout> childrens=new ArrayList<>();
 		for(int i=0;i<dim;i++){
 			for(int j=i+1;j<dim;j++){
 				childrens.add(exchange(i, j, -1, 0));
@@ -149,9 +147,9 @@ private double getmin(double[] list){
 				if(o.board[i][j]==exchange(i, j, 1, -1).board[i][j]){
 					k[7]=this.impar_par(o.board[i][j], board[i][j]);
 				}
-				h=getmin(k);
+				h+=getmin(k);
 			}
 		}
 		return h;
-	}
+	}*/
 }
