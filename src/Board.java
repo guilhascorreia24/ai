@@ -1,5 +1,6 @@
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
 
 import javax.management.RuntimeErrorException;
 
@@ -106,50 +107,98 @@ class Board implements Ilayout, Cloneable {
 	}
 
 	
-private double getmin(double[] list){
-    double max = Double.MAX_VALUE;
-    for(int i=0; i<list.length; i++){
-        if(list[i] < max){
-            max = list[i];
-        }
-    }
-    return max;
-}
 
 	@Override
 	public double getH(Ilayout l) {
 		Board o=(Board) l;
+		Board p=this;
 		double h=0;
 		for(int i=0;i<dim;i++){
 			for(int j=0;j<dim;j++){
-				double[] k=new double [8];
-				if(o.board[i][j]==exchange(i, j, -1, 0).board[i][j]){
-					k[0]=this.impar_par(o.board[i][j],board[i][j]);
+				int n=p.board[i][j];
+				if(n==o.board[i][j]){
 				}
-				if(o.board[i][j]==exchange(i, j, 0, -1).board[i][j]){
-					k[1]=this.impar_par(o.board[i][j],board[i][j]);
+				else{
+					double h1=0;
+					find(n,o);
+					h1=impar_par(n,p.board[x][y]);
+					int x1=x,y1=y;
+					double h2=0;
+					n=o.board[i][j];
+					find(n, p);
+					h2=impar_par(n,p.board[i][j]);
+					System.out.println(p.board[i][j]+" "+p.board[x1][y1]+"//"+p.board[i][j]+" "+p.board[x][y]+" "+h1+" "+h2);
+					if(n==p.board[i][j]){}
+					else if(h1<=h2){
+						int u=p.board[i][j];
+						p.board[i][j]=p.board[x1][y1];
+						p.board[x1][y1]=u;
+						if(h1==20){
+							desvio_do_20(Board p, int i, int j);
+						}
+						h+=h1;
+					}
+					else{
+						int u=p.board[i][j];
+						p.board[i][j]=p.board[x][y];
+						p.board[x][y]=u;
+						h+=h2;
+					}
+					System.out.println(p);
 				}
-				if(o.board[i][j]==exchange(i, j, 1, 0).board[i][j]){
-					k[2]=this.impar_par(o.board[i][j], board[i][j]);
-				}
-				if(o.board[i][j]==exchange(i, j, 0, 1).board[i][j]){
-					k[3]=this.impar_par(o.board[i][j], board[i][j]);
-				}
-				if(o.board[i][j]==exchange(i, j, -1, -1).board[i][j]){
-					k[4]=this.impar_par(o.board[i][j], board[i][j]);
-				}
-				if(o.board[i][j]==exchange(i, j, -1, 1).board[i][j]){
-					k[5]=this.impar_par(o.board[i][j], board[i][j]);
-				}
-				if(o.board[i][j]==exchange(i, j, 1, 1).board[i][j]){
-					k[6]=this.impar_par(o.board[i][j], board[i][j]);
-				}
-				if(o.board[i][j]==exchange(i, j, 1, -1).board[i][j]){
-					k[7]=this.impar_par(o.board[i][j], board[i][j]);
-				}
-				h+=getmin(k);
 			}
 		}
+		System.out.println(h);
 		return h;
-	}*/
+	}
+
+
+	private void desvio_do_20(Board p,int i,int j){
+		if(p.board[i+2][j])
+	}
+
+	private void ao_rendor(int i,int j,Board p){
+		if(p.board[i+1][j]%2!=0){
+						x=i+1;
+			y=j;
+		}
+		else if(p.board[i-1][j]%2!=0) {
+						x=i-1;
+			y=j;
+		}
+		else if(p.board[i][j+1]%2!=0 ) {
+						x=i;
+			y=j+1;
+		}
+		else if(p.board[i][j-1]%2!=0){
+						x=i;
+			y=j-1;
+		}
+		else if( p.board[i+1][j+1]%2!=0){
+						x=i+1;
+			y=j+1;
+		}
+		else if(p.board[i-1][j+1]%2!=0){
+						x=i-1;
+			y=j+1;
+		}
+		else if(p.board[i+1][j-1]%2!=0){
+						x=i+1;
+			y=j-1;
+		}
+		else if(p.board[i-1][j-1]%2!=0){
+			x=i-1;
+			y=j-1; 
+		}
+	]
+private int x,y;
+	private void find(int m,Board p){
+		for(int i=0;i<dim;i++){
+			for(int j=0;j<dim;j++){
+				if(m==p.board[i][j]){
+					x=i;y=j;
+				}
+			}
+		}
+	}
 }

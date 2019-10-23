@@ -4,7 +4,6 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.PriorityQueue;
 import java.util.Queue;
 
 import javax.management.RuntimeErrorException;
@@ -39,7 +38,11 @@ class BestFirst {
 	}
 	protected Queue<State> abertos;
 	private State actual;
-	private Ilayout objective;
+	//private Ilayout objective;
+	private double depth = 0;
+    private Ilayout objective;
+    private double lowerF;
+
 	
 	final private List<State> sucessores(final State n) {
 		List<State> sucs = new ArrayList<>();
@@ -51,7 +54,7 @@ class BestFirst {
 		return sucs;
 	}
 
-	final public Iterator<State> solve(Ilayout s, Ilayout goal) {
+	/*final public Iterator<State> solve(Ilayout s, Ilayout goal) {
 		objective =goal;
 		Queue<State> abertos = new PriorityQueue<>(10,(s1, s2) -> (int) Math.signum(s1.getF()-s2.getF()));
 		abertos.add(new State(s, null,goal));
@@ -93,6 +96,89 @@ class BestFirst {
 				}
 			}
 			return null;
-	}
+	}*/
+
+	 final private State containsNode(State lastNode, State contains){
+        
+        if(lastNode.equals(contains))
+            return lastNode;
+        State currNode = lastNode;
+        while(currNode.father != null){
+            if(currNode.equals(contains))
+                return currNode;
+            currNode = currNode.father;
+        }
+        return null;
+    }
+
+    final private Iterator<State> invertOrder(State lastNode){
+        LinkedList<State> list = new LinkedList<State>();
+
+        State state = lastNode;
+        while(state != null){
+            list.addFirst(state);
+            state = state.father;
+        }
+
+        return list.iterator();
+
+    }
+    final public State search(State currentNode){
+
+        List<State> childrens = sucessores(currentNode);
+        
+
+        for(State curr: childrens){
+
+            if(containsNode(currentNode, curr)!= null){
+                continue;
+            }
+
+            if(curr.getF()<=depth){
+                if(curr.layout.equals(objective)){
+                    return curr;
+                }
+                State found = search(curr);
+                if(found !=null){
+                    return found;
+                }
+            }else{
+                if(curr.getF()<lowerF){
+                    lowerF = curr.getF();
+                }
+            }
+        }
+
+        return null;
+    }
+
+    final public Iterator<State> solve(Ilayout s, Ilayout goal) {
+    
+        objective = goal;
+        lowerF = s.getH(goal);
+        State currentNode = new State(s,null,goal);
+        /*if(currentNode.layout.equals(goal)){
+            return invertOrder(currentNode);
+		}*/
+		//System.out.println("Searching Depth: " + currentNode.getF());
+		return null;
+
+        /*while(true){
+
+
+            depth = lowerF;
+            lowerF = Double.MAX_VALUE;
+
+            State found = search(currentNode);
+			//System.out.println(found.getF()-found.getG());
+            if(found != null){
+                return invertOrder(found);
+            }
+
+            if(lowerF == Double.MAX_VALUE){
+                throw new RuntimeException("No path exists");
+            }
+        }*/
+    }
 
 }
